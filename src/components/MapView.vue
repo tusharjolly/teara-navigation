@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import * as echarts from 'echarts';
 import { onMounted } from 'vue';
-import campusMap from "../assets/CurrentCampus1.svg?raw";
+import campusMap from "../assets/CurrentCampus.flattened.svg?raw";
 import testMap from "../assets/TestMap.svg?raw";
 
 function test() {

@@ -12,13 +12,29 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "cheerio": "^1.1.2",
     "echarts": "^6.0.0",
+    "fast-xml-parser": "^5.3.3",
     "vue": "^3.5.22"
   },
   "devDependencies": {
     "@types/jquery": "^3.5.33",
     "@vitejs/plugin-vue": "^6.0.1",
+    "css": "^3.0.0",
     "vite": "^7.1.11",
     "vite-plugin-vue-devtools": "^8.0.3"
-  }
+  },
+  "description": "This template should help get you started developing with Vue 3 in Vite.",
+  "main": "vite.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jian-GitHub-Team/596Internship-Test.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Jian-GitHub-Team/596Internship-Test/issues"
+  },
+  "homepage": "https://github.com/Jian-GitHub-Team/596Internship-Test#readme"
 }
