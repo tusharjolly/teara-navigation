@@ -389,13 +389,14 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
         geo: {
           map: mapName,
           roam: true, // Enable both pan and zoom gestures (like Google Maps)
-          zoom: calculatedZoom, // Initial zoom level - slightly zoomed out
+          zoom: calculatedZoom, // Initial zoom level - zoomed in for detail
+          center: [svgWidth / 2, svgHeight / 2], // Center the map on the SVG center point
           left: 0,
           top: 0,
           right: 0,
           bottom: 0,
           layoutSize: '100%', // Fill entire container
-          layoutCenter: ['50%', '50%'], // Center the map
+          layoutCenter: ['50%', '50%'], // Center the map in container
           boundingCoords: boundingCoords, // Fit map to screen
           itemStyle: {
             areaColor: 'transparent',
