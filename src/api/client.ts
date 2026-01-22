@@ -95,13 +95,10 @@ const DEFAULT_CAMPUS_ID = (import.meta.env.VITE_DEFAULT_CAMPUS_ID as string | un
 
 function ensureConfigured() {
   if (!API_BASE_URL) {
-    const error = new Error("Missing VITE_API_BASE_URL. Add it to your .env or Cloudflare Pages environment variables.");
+    const error = new Error("Missing VITE_API_BASE_URL. Add it to your .env.");
     console.error('❌ Configuration error:', error);
-    console.error('Current API_BASE_URL:', API_BASE_URL);
-    console.error('VITE_API_BASE_URL from env:', import.meta.env.VITE_API_BASE_URL);
     throw error;
   }
-  console.log('✅ API configured:', { API_BASE_URL, DEFAULT_CAMPUS_ID });
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
@@ -143,8 +140,6 @@ async function apiGet<T>(path: string, timeout: number = 10000): Promise<T> {
   ensureConfigured();
   const fullUrl = `${API_BASE_URL}${path}`;
   
-  console.log('🌐 API GET Request:', { path, fullUrl, timeout });
-  
   try {
     const res = await fetchWithTimeout(fullUrl, {
       headers: {
@@ -152,13 +147,8 @@ async function apiGet<T>(path: string, timeout: number = 10000): Promise<T> {
       },
     }, timeout);
     
-    console.log('📥 API GET Response:', { status: res.status, statusText: res.statusText, url: fullUrl });
-    
-    const data = await handleResponse<T>(res);
-    console.log('✅ API GET Success:', { path, hasData: !!data });
-    return data;
+    return handleResponse<T>(res);
   } catch (error) {
-    console.error('❌ API GET Error:', { error, path, fullUrl });
     if (error instanceof Error && error.message === 'Request timeout') {
       throw new Error('Request timed out. Please try again.');
     }
@@ -232,8 +222,6 @@ export async function searchNodes(campusId: string, keyword: string) {
 }
 
 export async function searchBuildingsAndNodes(campusId: string, keyword: string) {
-  console.log('🔍 searchBuildingsAndNodes called:', { campusId, keyword });
-  
   // Search for both buildings and nodes - omit types parameter to search all types
   // or explicitly pass both: types=building&types=node
   const params = new URLSearchParams({
