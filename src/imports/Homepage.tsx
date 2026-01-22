@@ -371,8 +371,13 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
         ];
       }
 
-      // Calculate initial zoom to fit the map nicely (slightly zoomed out for better view)
-      const calculatedZoom = 50; // Slightly zoomed out to show more context
+      // Calculate initial zoom to fit the map nicely
+      // Calculate zoom based on container and SVG dimensions for proper fit
+      const scaleX = containerWidth / svgWidth;
+      const scaleY = containerHeight / svgHeight;
+      const baseZoom = Math.min(scaleX, scaleY);
+      // Add 10% zoom-in for better aesthetic view (not too zoomed out)
+      const calculatedZoom = Math.max(0.8, Math.min(1.2, baseZoom * 1.1));
 
       // Set ECharts option - Google Maps-like functionality
       const option: echarts.EChartsOption = {
