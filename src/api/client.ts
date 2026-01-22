@@ -261,6 +261,7 @@ export async function searchBuildingsAndNodes(campusId: string, keyword: string)
   
   try {
     console.log('⏳ Calling apiGet with URL:', url);
+    console.log('⏳ Full API URL will be:', `${API_BASE_URL}${url}`);
     // Use longer timeout for search (15 seconds) to account for Cloudflare Worker proxy latency
     const result = await apiGet<{ results: ApiSearchResult[]; next_page_token?: string; total_count?: number }>(url, 15000);
     console.log('✅ Search API success:', result);
