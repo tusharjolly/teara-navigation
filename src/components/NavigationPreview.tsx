@@ -153,11 +153,8 @@ export default function NavigationPreview({
 
   return (
     <div className="relative w-full h-screen bg-white dark:bg-gray-900">
-      {/* Status Bar */}
-      <div className="bg-[#353535] dark:bg-gray-950 h-[44px]" />
-
       {/* Header */}
-      <div className="absolute top-[44px] left-0 right-0 z-20 flex items-center justify-between px-4 py-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur">
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur">
         <button onClick={onBack} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 relative z-10">
           <ArrowLeft className="size-6 text-black dark:text-white" />
         </button>

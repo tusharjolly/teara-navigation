@@ -20,15 +20,8 @@ export default function IndoorMap({ language, theme, building, onBack }: IndoorM
 
   return (
     <div className="relative w-full h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
-      {/* Status Bar */}
-      <div className="bg-[#353535] h-[44px] overflow-clip pointer-events-auto sticky top-0 w-full z-50">
-        <div className="absolute h-[21px] left-[24px] rounded-[24px] top-[12px] w-[54px]">
-          <p className="absolute font-['SF_Pro_Text:Semibold',sans-serif] h-[20px] leading-[20px] left-[27px] not-italic text-[15px] text-center text-white top-px tracking-[-0.5px] translate-x-[-50%] w-[54px]">9:41</p>
-        </div>
-      </div>
-
       {/* Modern Top Bar */}
-      <div className="absolute top-[44px] left-0 right-0 z-40 bg-white dark:bg-gray-800 shadow-sm">
+      <div className="absolute top-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
           {/* Back Button */}
           <button 

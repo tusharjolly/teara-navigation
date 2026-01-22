@@ -393,21 +393,6 @@ export default function StepNavigation({
 
   return (
     <div className="relative w-full h-screen bg-white dark:bg-gray-900 overflow-hidden">
-      {/* Status Bar */}
-      <div className="absolute top-0 left-0 right-0 h-[44px] bg-[#353535] dark:bg-gray-950 z-50 flex items-center justify-between px-4">
-        <span className="text-white text-sm">10:29</span>
-        <div className="flex items-center gap-2">
-          <div className="flex gap-0.5">
-            <div className="w-1 h-3 bg-white rounded-sm" />
-            <div className="w-1 h-3 bg-white rounded-sm" />
-            <div className="w-1 h-3 bg-white/60 rounded-sm" />
-            <div className="w-1 h-3 bg-white/40 rounded-sm" />
-          </div>
-          <Navigation2 className="size-3 text-white" />
-          <span className="text-white text-xs bg-white/20 px-1.5 py-0.5 rounded">96</span>
-        </div>
-      </div>
-
       {/* Map with Highlighted Path */}
       <div className="absolute inset-0 w-full h-full z-0">
         {path && path.nodes && path.nodes.length >= 2 ? (
