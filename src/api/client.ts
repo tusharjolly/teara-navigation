@@ -95,10 +95,13 @@ const DEFAULT_CAMPUS_ID = (import.meta.env.VITE_DEFAULT_CAMPUS_ID as string | un
 
 function ensureConfigured() {
   if (!API_BASE_URL) {
-    const error = new Error("Missing VITE_API_BASE_URL. Add it to your .env.");
+    const error = new Error("Missing VITE_API_BASE_URL. Add it to your .env or Cloudflare Pages environment variables.");
     console.error('❌ Configuration error:', error);
+    console.error('Current API_BASE_URL:', API_BASE_URL);
+    console.error('VITE_API_BASE_URL from env:', import.meta.env.VITE_API_BASE_URL);
     throw error;
   }
+  console.log('✅ API configured:', { API_BASE_URL, DEFAULT_CAMPUS_ID });
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
@@ -222,6 +225,8 @@ export async function searchNodes(campusId: string, keyword: string) {
 }
 
 export async function searchBuildingsAndNodes(campusId: string, keyword: string) {
+  console.log('🔍 searchBuildingsAndNodes called:', { campusId, keyword });
+  
   // Search for both buildings and nodes - omit types parameter to search all types
   // or explicitly pass both: types=building&types=node
   const params = new URLSearchParams({

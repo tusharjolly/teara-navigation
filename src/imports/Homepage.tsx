@@ -178,30 +178,42 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
 
       try {
         setMapLoading(true);
+        console.log('🗺️ Loading map for campus:', campusIdToUse);
         const mapData = await fetchMapSvg(campusIdToUse, 'campus', campusIdToUse);
+        console.log('🗺️ Map data received:', { 
+          hasSvgData: !!mapData.svg_data, 
+          svgDataLength: mapData.svg_data?.length || 0,
+          isUrl: mapData.svg_data?.trim().startsWith('http') || false
+        });
         
         // Check if the response is a URL instead of SVG data (backend returns Azure Blob Storage URL)
         if (mapData.svg_data.trim().startsWith('http://') || mapData.svg_data.trim().startsWith('https://')) {
+          console.warn('⚠️ API returned SVG URL instead of data, using fallback');
           // Can't fetch from internal IP addresses, use fallback immediately
           await loadFallbackSvg(campusIdToUse);
         } else {
           // Normal case: API returned SVG data directly
           if (mapData.svg_data && mapData.svg_data.trim().length > 0) {
+            console.log('✅ Using API SVG data');
             setMapSvg(mapData.svg_data);
             const mapName = `campus-map-${campusIdToUse}`;
             // Register map if not already registered
             if (!echarts.getMap(mapName)) {
               echarts.registerMap(mapName, { svg: mapData.svg_data });
+              console.log('✅ Map registered:', mapName);
             }
           } else {
+            console.warn('⚠️ Empty SVG data from API, using fallback');
             // Empty SVG data, use fallback
             await loadFallbackSvg(campusIdToUse);
           }
         }
       } catch (error) {
+        console.error('❌ Failed to load map from API:', error);
         await loadFallbackSvg(campusIdToUse);
       } finally {
         setMapLoading(false);
+        console.log('🗺️ Map loading complete');
       }
       
       async function loadFallbackSvg(campusId: string) {
