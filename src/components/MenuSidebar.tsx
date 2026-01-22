@@ -20,6 +20,8 @@ export default function MenuSidebar({
   onLanguageChange,
   onThemeChange,
   onBuildingSelect,
+  buildings,
+  isLoadingBuildings = false,
 }: MenuSidebarProps) {
   const [showLanguagePanel, setShowLanguagePanel] = useState(false);
   const [showBuildingsList, setShowBuildingsList] = useState(false);
@@ -46,13 +48,6 @@ export default function MenuSidebar({
     if (language === 'mi') return mi;
     return en;
   };
-
-  const buildings = [
-    { id: 'g-block', nameEN: 'G Block', nameCN: 'G座', nameMI: 'Whare G' },
-    { id: 'l-block', nameEN: 'L Block', nameCN: 'L座', nameMI: 'Whare L' },
-    { id: 'the-pa', nameEN: 'The Pā', nameCN: 'The Pā', nameMI: 'Te Pā' },
-    { id: 'student-centre', nameEN: 'Student Centre', nameCN: '学生中心', nameMI: 'Pokapū Ākonga' },
-  ];
 
   return (
     <div className="absolute inset-0 z-50 flex animate-fade-in">
@@ -265,19 +260,29 @@ export default function MenuSidebar({
               {/* Buildings List Items */}
               {showBuildingsList && (
                 <div className="pl-[66px] space-y-6 pb-4">
-                  {buildings.map((building) => (
-                    <button
-                      key={building.id}
-                      onClick={() => {
-                        onBuildingSelect(building.id);
-                        setShowBuildingsList(false);
-                        onClose();
-                      }}
-                      className="w-full text-left text-black dark:text-white text-xl font-bold hover:text-[#ff5a5a] transition-colors"
-                    >
-                      {language === 'en' ? building.nameEN : language === 'zh' ? building.nameCN : building.nameMI}
-                    </button>
-                  ))}
+                  {isLoadingBuildings ? (
+                    <div className="text-black dark:text-white text-lg py-2">
+                      {t('Loading buildings...', '加载建筑中...', 'Tāuta whare...')}
+                    </div>
+                  ) : buildings.length === 0 ? (
+                    <div className="text-gray-500 dark:text-gray-400 text-lg py-2">
+                      {t('No buildings found', '未找到建筑', 'Kāore he whare i kitea')}
+                    </div>
+                  ) : (
+                    buildings.map((building) => (
+                      <button
+                        key={building.id}
+                        onClick={() => {
+                          onBuildingSelect(building.id);
+                          setShowBuildingsList(false);
+                          onClose();
+                        }}
+                        className="w-full text-left text-black dark:text-white text-xl font-bold hover:text-[#ff5a5a] transition-colors"
+                      >
+                        {building.name}
+                      </button>
+                    ))
+                  )}
                 </div>
               )}
             </div>

@@ -548,6 +548,8 @@ export default function App() {
                 handleBuildingClick(buildingId);
                 setMenuOpen(false);
               }}
+              buildings={buildings}
+              isLoadingBuildings={isLoadingBuildings}
             />
           )}
         </div>
