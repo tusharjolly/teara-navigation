@@ -371,19 +371,21 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
         ];
       }
 
-      // Calculate initial zoom to fit the map nicely - maximum zoom out for aesthetic view
-      // Calculate zoom based on container and SVG dimensions for proper fit
+      // Calculate initial zoom for aesthetic view - balanced zoom out
+      // For mobile screens, use a fixed aesthetic zoom that shows good context
+      // Calculate based on container to ensure it fits, but use a multiplier for better view
       const scaleX = containerWidth / svgWidth;
       const scaleY = containerHeight / svgHeight;
       const baseZoom = Math.min(scaleX, scaleY);
-      // Use 50% of base zoom for maximum zoom out (shows maximum context)
-      const calculatedZoom = Math.max(0.3, Math.min(0.5, baseZoom * 0.5));
+      // Use 0.65x multiplier for a balanced, aesthetic zoomed-out view
+      // This shows good context without being too zoomed out or too zoomed in
+      const calculatedZoom = Math.max(0.4, Math.min(0.7, baseZoom * 0.65));
 
       // Set ECharts option - Google Maps-like functionality
       const option: echarts.EChartsOption = {
         backgroundColor: 'transparent',
-        animation: true, // Enable smooth animations
-        animationDuration: 300, // Smooth animation duration
+        animation: false, // Disable initial animation to prevent zoom jump
+        animationDuration: 0, // No animation on initial load
         animationEasing: 'cubicOut', // Smooth easing
         geo: {
           map: mapName,
@@ -450,11 +452,11 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
             ];
           }
           
-          // Recalculate zoom for new container size with 0.5x multiplier
+          // Recalculate zoom for new container size with 0.65x multiplier
           const newScaleX = newContainerWidth / svgWidth;
           const newScaleY = newContainerHeight / svgHeight;
           const newBaseZoom = Math.min(newScaleX, newScaleY);
-          const newCalculatedZoom = Math.max(0.3, Math.min(0.5, newBaseZoom * 0.5));
+          const newCalculatedZoom = Math.max(0.4, Math.min(0.7, newBaseZoom * 0.65));
           
           chartRef.current.setOption({
             geo: {
