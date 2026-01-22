@@ -462,6 +462,7 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
             geo: {
               boundingCoords: newBoundingCoords,
               zoom: newCalculatedZoom,
+              center: [svgWidth / 2, svgHeight / 2], // Keep map centered
             },
           }, false);
           
@@ -541,6 +542,7 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
         chartRef.current.setOption({
           geo: {
             boundingCoords: newBoundingCoords,
+            center: [svgWidth / 2, svgHeight / 2], // Keep map centered on resize
           },
         }, false);
       }
