@@ -238,7 +238,6 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
         
         // Check if the response is a URL instead of SVG data (backend returns Azure Blob Storage URL)
         if (mapData.svg_data.trim().startsWith('http://') || mapData.svg_data.trim().startsWith('https://')) {
-          console.warn('⚠️ API returned URL instead of SVG data (likely internal Azure Blob Storage). Using fallback SVG.');
           // Can't fetch from internal IP addresses, use fallback immediately
           await loadFallbackSvg(campusIdToUse);
         } else {
@@ -246,10 +245,8 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
           setMapSvg(mapData.svg_data);
           const mapName = `campus-map-${campusIdToUse}`;
           echarts.registerMap(mapName, { svg: mapData.svg_data });
-          console.log('✅ Loaded map SVG from API');
         }
       } catch (error) {
-        console.error('❌ Failed to load map from API, using fallback:', error);
         await loadFallbackSvg(campusIdToUse);
       } finally {
         setMapLoading(false);
@@ -264,11 +261,10 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
             setMapSvg(svgText);
             const mapName = `campus-map-${campusId}`;
             echarts.registerMap(mapName, { svg: svgText });
-            console.log('✅ Loaded fallback SVG from assets');
             return;
           }
         } catch (e) {
-          console.warn('Failed to load fallback from assets, trying public folder:', e);
+          // Try public folder as fallback
         }
         
         try {
@@ -279,13 +275,10 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
             setMapSvg(svgText);
             const mapName = `campus-map-${campusId}`;
             echarts.registerMap(mapName, { svg: svgText });
-            console.log('✅ Loaded fallback SVG from /maps/lg.svg');
           } else {
-            console.error('❌ All fallback SVGs failed to load');
             setMapSvg(null);
           }
         } catch (fallbackError) {
-          console.error('❌ Failed to load fallback SVG:', fallbackError);
           setMapSvg(null);
         }
       }
@@ -585,10 +578,8 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
   // Call API when user searches - always calls backend API with timeout protection
   useEffect(() => {
     const keyword = searchQuery.trim();
-    console.log('🔎 Search useEffect triggered:', { keyword, hasOnSearch: !!onSearch, searchQuery });
     
     if (!keyword || !onSearch) {
-      console.log('⚠️ Search skipped:', { keyword, hasOnSearch: !!onSearch, reason: !keyword ? 'empty keyword' : 'no onSearch prop' });
       setSearchResults([]);
       setIsSearching(false);
       setSearchError(null);
@@ -601,12 +592,9 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
     
     // Debounce API call - 300ms for smooth UX
     const debounceTimeout = setTimeout(() => {
-      console.log('🚀 Starting search for:', keyword);
-      
       // Add a timeout wrapper to prevent infinite loading
       const searchTimeout = setTimeout(() => {
         if (!cancelled) {
-          console.error('⏱️ Search request timed out after 12 seconds');
           setSearchResults([]);
           setIsSearching(false);
           setSearchError('Search timed out. Please try again.');
@@ -614,12 +602,10 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
       }, 12000); // 12 second max timeout (10s API + 2s buffer)
       
       // Always call the API - no local fallback
-      console.log('📞 Calling onSearch function...');
       onSearch(keyword)
         .then((results) => {
           clearTimeout(searchTimeout);
           if (!cancelled) {
-            console.log('✅ Search completed with results:', results.length);
             setSearchResults(results);
             setIsSearching(false);
             setSearchError(null);
@@ -628,7 +614,6 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
         .catch((error) => {
           clearTimeout(searchTimeout);
           if (!cancelled) {
-            console.error('❌ Search API failed:', error);
             setSearchResults([]);
             setIsSearching(false);
             setSearchError(error instanceof Error ? error.message : 'Search failed. Please try again.');

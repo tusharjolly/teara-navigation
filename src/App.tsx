@@ -338,16 +338,12 @@ export default function App() {
 
   const searchNodesForCampus = useCallback(
     async (keyword: string) => {
-      console.log('🔎 searchNodesForCampus called with keyword:', keyword);
-      
       if (!campusId) {
-        console.warn('⚠️ No campus ID available for search');
         return [];
       }
       
       const trimmed = keyword.trim().toLowerCase();
       if (!trimmed) {
-        console.log('⚠️ Empty keyword after trim');
         return [];
       }
       
@@ -356,7 +352,6 @@ export default function App() {
       const cached = searchCache.current.get(cacheKey);
       const cacheTime = cacheTimestamps.current.get(cacheKey);
       if (cached && cacheTime && Date.now() - cacheTime < CACHE_TTL) {
-        console.log('✅ Using cached search results');
         return cached;
       }
       
@@ -382,16 +377,12 @@ export default function App() {
         searchTerms.push(trimmed); // Also try original
       }
       
-      console.log('📡 Calling searchBuildingsAndNodes with:', { campusId, searchTerm, searchTerms });
-      
       try {
         // Try the normalized term first
         let res = await searchBuildingsAndNodes(campusId, searchTerm);
-        console.log('📥 Received search response:', res);
         
         // If no results, try original term
         if (res.results.length === 0 && searchTerm !== trimmed) {
-          console.log('🔄 Trying original search term...');
           res = await searchBuildingsAndNodes(campusId, trimmed);
         }
         

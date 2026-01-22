@@ -59,14 +59,12 @@ export default function RouteSetting({
       
       setIsSearching(true);
       setSearchError(null);
-      console.log('🔍 RouteSetting: Starting search for:', keyword);
 
       // Add timeout protection
       const searchTimeout = setTimeout(() => {
         if (!cancelled) {
           setIsSearching(false);
           setSearchError('Search timed out. Please try again.');
-          console.error('⏱️ RouteSetting: Search timed out');
         }
       }, 8000); // 8 second timeout
 
@@ -74,7 +72,6 @@ export default function RouteSetting({
         .then((nodes) => {
           clearTimeout(searchTimeout);
           if (!cancelled) {
-            console.log('✅ RouteSetting: Search results received:', nodes.length, 'items');
             setSearchResults(nodes);
             setIsSearching(false);
             setSearchError(null);
@@ -83,7 +80,6 @@ export default function RouteSetting({
         .catch((error) => {
           clearTimeout(searchTimeout);
           if (!cancelled) {
-            console.error('❌ RouteSetting: Search error:', error);
             setSearchError(error instanceof Error ? error.message : 'Search failed');
             setIsSearching(false);
             setSearchResults([]);

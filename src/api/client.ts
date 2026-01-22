@@ -94,17 +94,11 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.
 const DEFAULT_CAMPUS_ID = (import.meta.env.VITE_DEFAULT_CAMPUS_ID as string | undefined) ?? "";
 
 function ensureConfigured() {
-  console.log('🔧 Checking API configuration...');
-  console.log('🔧 API_BASE_URL:', API_BASE_URL);
-  console.log('🔧 DEFAULT_CAMPUS_ID:', DEFAULT_CAMPUS_ID);
-  
   if (!API_BASE_URL) {
     const error = new Error("Missing VITE_API_BASE_URL. Add it to your .env.");
     console.error('❌ Configuration error:', error);
     throw error;
   }
-  
-  console.log('✅ API configuration OK');
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
@@ -145,7 +139,6 @@ function fetchWithTimeout(url: string, options: RequestInit = {}, timeout = 6000
 async function apiGet<T>(path: string, timeout: number = 10000): Promise<T> {
   ensureConfigured();
   const fullUrl = `${API_BASE_URL}${path}`;
-  console.log('🌐 API GET Request:', fullUrl);
   
   try {
     const res = await fetchWithTimeout(fullUrl, {
@@ -154,10 +147,8 @@ async function apiGet<T>(path: string, timeout: number = 10000): Promise<T> {
       },
     }, timeout);
     
-    console.log('📡 API Response status:', res.status, res.statusText);
     return handleResponse<T>(res);
   } catch (error) {
-    console.error('❌ API GET Error:', error);
     if (error instanceof Error && error.message === 'Request timeout') {
       throw new Error('Request timed out. Please try again.');
     }
@@ -169,7 +160,6 @@ async function apiGet<T>(path: string, timeout: number = 10000): Promise<T> {
 async function apiGetText(path: string): Promise<string> {
   ensureConfigured();
   const fullUrl = `${API_BASE_URL}${path}`;
-  console.log('🌐 API GET Text Request:', fullUrl);
   
   try {
     const res = await fetchWithTimeout(fullUrl, {
@@ -178,15 +168,12 @@ async function apiGetText(path: string): Promise<string> {
       },
     }, 15000); // 15 second timeout for SVG files
     
-    console.log('📡 API Text Response status:', res.status, res.statusText);
-    
     if (!res.ok) {
       const text = await res.text();
       throw new Error(`HTTP ${res.status}: ${text}`);
     }
     return res.text();
   } catch (error) {
-    console.error('❌ API GET Text Error:', error);
     if (error instanceof Error && error.message === 'Request timeout') {
       throw new Error('Request timed out. Please try again.');
     }
@@ -247,31 +234,18 @@ export async function searchBuildingsAndNodes(campusId: string, keyword: string)
   params.append('types', 'node');
   
   const url = `/query/search?${params.toString()}`;
-  const fullUrl = `${API_BASE_URL}${url}`;
-  console.log('🔍 Making search API call:', fullUrl);
-  console.log('🔍 Search params:', { campusId, keyword });
-  console.log('🔍 API_BASE_URL value:', API_BASE_URL);
   
   // Verify API_BASE_URL is set
   if (!API_BASE_URL) {
     const error = new Error('API_BASE_URL is not configured. Check your .env file.');
-    console.error('❌ Configuration error:', error);
     throw error;
   }
   
   try {
-    console.log('⏳ Calling apiGet with URL:', url);
-    console.log('⏳ Full API URL will be:', `${API_BASE_URL}${url}`);
     // Use longer timeout for search (15 seconds) to account for Cloudflare Worker proxy latency
     const result = await apiGet<{ results: ApiSearchResult[]; next_page_token?: string; total_count?: number }>(url, 15000);
-    console.log('✅ Search API success:', result);
     return result;
   } catch (error) {
-    console.error('❌ Search API error:', error);
-    console.error('❌ Error details:', {
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    });
     throw error;
   }
 }
