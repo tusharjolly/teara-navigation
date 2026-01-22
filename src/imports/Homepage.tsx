@@ -242,9 +242,17 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
           await loadFallbackSvg(campusIdToUse);
         } else {
           // Normal case: API returned SVG data directly
-          setMapSvg(mapData.svg_data);
-          const mapName = `campus-map-${campusIdToUse}`;
-          echarts.registerMap(mapName, { svg: mapData.svg_data });
+          if (mapData.svg_data && mapData.svg_data.trim().length > 0) {
+            setMapSvg(mapData.svg_data);
+            const mapName = `campus-map-${campusIdToUse}`;
+            // Register map if not already registered
+            if (!echarts.getMap(mapName)) {
+              echarts.registerMap(mapName, { svg: mapData.svg_data });
+            }
+          } else {
+            // Empty SVG data, use fallback
+            await loadFallbackSvg(campusIdToUse);
+          }
         }
       } catch (error) {
         await loadFallbackSvg(campusIdToUse);
@@ -255,16 +263,22 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
       async function loadFallbackSvg(campusId: string) {
         try {
           // Try to load the imported fallback SVG first
+          // campusMapSvg is imported as a module, so fetch it as a URL
           const response = await fetch(campusMapSvg);
           if (response.ok) {
             const svgText = await response.text();
-            setMapSvg(svgText);
-            const mapName = `campus-map-${campusId}`;
-            echarts.registerMap(mapName, { svg: svgText });
-            return;
+            if (svgText && svgText.trim().length > 0) {
+              setMapSvg(svgText);
+              const mapName = `campus-map-${campusId}`;
+              // Register map if not already registered
+              if (!echarts.getMap(mapName)) {
+                echarts.registerMap(mapName, { svg: svgText });
+              }
+              return;
+            }
           }
         } catch (e) {
-          // Try public folder as fallback
+          console.warn('Failed to load fallback from assets, trying public folder:', e);
         }
         
         try {
@@ -272,13 +286,21 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
           const publicResponse = await fetch('/maps/lg.svg');
           if (publicResponse.ok) {
             const svgText = await publicResponse.text();
-            setMapSvg(svgText);
-            const mapName = `campus-map-${campusId}`;
-            echarts.registerMap(mapName, { svg: svgText });
+            if (svgText && svgText.trim().length > 0) {
+              setMapSvg(svgText);
+              const mapName = `campus-map-${campusId}`;
+              // Register map if not already registered
+              if (!echarts.getMap(mapName)) {
+                echarts.registerMap(mapName, { svg: svgText });
+              }
+            } else {
+              setMapSvg(null);
+            }
           } else {
             setMapSvg(null);
           }
         } catch (fallbackError) {
+          console.error('Failed to load fallback SVG:', fallbackError);
           setMapSvg(null);
         }
       }
