@@ -317,6 +317,14 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
     function initializeChart() {
       if (!mapContainerRef.current || !mapSvg) return;
       
+      const campusIdToUse = campusId || getDefaultCampusId();
+      const mapName = `campus-map-${campusIdToUse}`;
+      
+      // Ensure map is registered before initializing chart
+      if (!echarts.getMap(mapName)) {
+        echarts.registerMap(mapName, { svg: mapSvg });
+      }
+      
       // Initialize chart with proper configuration for touch devices
       const chart = echarts.init(mapContainerRef.current, null, {
         renderer: 'svg',
@@ -372,13 +380,14 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
       }
 
       // Calculate initial zoom to match the aesthetic view shown in screenshot
+      // For mobile screens, use a fixed zoom that looks good
       // Calculate based on container to ensure it fits properly
       const scaleX = containerWidth / svgWidth;
       const scaleY = containerHeight / svgHeight;
       const baseZoom = Math.min(scaleX, scaleY);
-      // Use 0.9x multiplier for balanced aesthetic view (matches deployed screenshot)
-      // This shows good detail without being too zoomed in or out
-      const calculatedZoom = Math.max(0.7, Math.min(1.0, baseZoom * 0.9));
+      // Use 1.0x (100%) for a natural fit - shows the map at proper scale
+      // This matches the screenshot which shows good detail
+      const calculatedZoom = Math.max(0.8, Math.min(1.1, baseZoom * 1.0));
 
       // Set ECharts option - Google Maps-like functionality
       const option: echarts.EChartsOption = {
@@ -452,11 +461,11 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
             ];
           }
           
-          // Recalculate zoom for new container size with 0.9x multiplier
+          // Recalculate zoom for new container size with 1.0x multiplier
           const newScaleX = newContainerWidth / svgWidth;
           const newScaleY = newContainerHeight / svgHeight;
           const newBaseZoom = Math.min(newScaleX, newScaleY);
-          const newCalculatedZoom = Math.max(0.7, Math.min(1.0, newBaseZoom * 0.9));
+          const newCalculatedZoom = Math.max(0.8, Math.min(1.1, newBaseZoom * 1.0));
           
           chartRef.current.setOption({
             geo: {
