@@ -1,0 +1,23 @@
+{
+  "nodes": [
+    { "id": "n1", "x": 160, "y": 180 },
+    { "id": "n2", "x": 300, "y": 180, "tags": ["well_lit"] },
+    { "id": "n3", "x": 420, "y": 200 },
+    { "id": "n4", "x": 560, "y": 200 },
+    { "id": "n5", "x": 220, "y": 360, "tags": ["stairs"] },
+    { "id": "n6", "x": 380, "y": 360 },
+    { "id": "n7", "x": 520, "y": 360, "tags": ["well_lit"] },
+    { "id": "n8", "x": 600, "y": 420 }
+  ],
+  "edges": [
+    { "from": "n1", "to": "n2", "dist": 140, "attrs": { "well_lit": true } },
+    { "from": "n2", "to": "n3", "dist": 120, "attrs": { "well_lit": false } },
+    { "from": "n3", "to": "n4", "dist": 140, "attrs": { "well_lit": true } },
+    { "from": "n2", "to": "n5", "dist": 190, "attrs": { "stairs": true } },
+    { "from": "n5", "to": "n6", "dist": 180, "attrs": { "stairs": true } },
+    { "from": "n6", "to": "n7", "dist": 170, "attrs": { "well_lit": true } },
+    { "from": "n7", "to": "n8", "dist": 120, "attrs": { "well_lit": true } },
+    { "from": "n3", "to": "n6", "dist": 170, "attrs": { "well_lit": true } },
+    { "from": "n4", "to": "n7", "dist": 170, "attrs": { "well_lit": true } }
+  ]
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "poi-badminton-court",
+    "label": "Badminton Court",
+    "type": "gym",
+    "building": "Sports Center",
+    "nodeId": "building-c-floor-2-basketball-court",
+    "keywords": ["court", "gym", "sports"],
+    "x": 180,
+    "y": 320
+  },
+  {
+    "id": "poi-library",
+    "label": "Library",
+    "type": "library",
+    "building": "Library Block",
+    "nodeId": "library-main",
+    "keywords": ["books", "study"],
+    "x": 260,
+    "y": 180
+  },
+  {
+    "id": "poi-cafeteria",
+    "label": "Cafeteria",
+    "type": "food",
+    "building": "Cafeteria",
+    "nodeId": "cafeteria-entrance",
+    "keywords": ["food", "lunch"],
+    "x": 210,
+    "y": 420
+  }
+]

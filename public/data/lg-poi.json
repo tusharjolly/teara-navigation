@@ -1,0 +1,5 @@
+[
+  { "id": "poi-entrance", "label": "Main Entrance", "nodeId": "n1", "keywords": ["entrance", "main"] },
+  { "id": "poi-lab", "label": "Computer Lab", "nodeId": "n6", "keywords": ["lab", "computer"] },
+  { "id": "poi-lecture", "label": "LG G.01 Lecture Theatre", "nodeId": "n7", "keywords": ["g01", "lecture", "theatre"] }
+]
