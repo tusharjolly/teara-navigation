@@ -235,16 +235,59 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
       try {
         setMapLoading(true);
         const mapData = await fetchMapSvg(campusIdToUse, 'campus', campusIdToUse);
-        setMapSvg(mapData.svg_data);
         
-        // Register map with ECharts
-        const mapName = `campus-map-${campusIdToUse}`;
-        echarts.registerMap(mapName, { svg: mapData.svg_data });
+        // Check if the response is a URL instead of SVG data (backend returns Azure Blob Storage URL)
+        if (mapData.svg_data.trim().startsWith('http://') || mapData.svg_data.trim().startsWith('https://')) {
+          console.warn('⚠️ API returned URL instead of SVG data (likely internal Azure Blob Storage). Using fallback SVG.');
+          // Can't fetch from internal IP addresses, use fallback immediately
+          await loadFallbackSvg(campusIdToUse);
+        } else {
+          // Normal case: API returned SVG data directly
+          setMapSvg(mapData.svg_data);
+          const mapName = `campus-map-${campusIdToUse}`;
+          echarts.registerMap(mapName, { svg: mapData.svg_data });
+          console.log('✅ Loaded map SVG from API');
+        }
       } catch (error) {
-        console.error('Failed to load map from API, using fallback:', error);
-        setMapSvg(null);
+        console.error('❌ Failed to load map from API, using fallback:', error);
+        await loadFallbackSvg(campusIdToUse);
       } finally {
         setMapLoading(false);
+      }
+      
+      async function loadFallbackSvg(campusId: string) {
+        try {
+          // Try to load the imported fallback SVG first
+          const response = await fetch(campusMapSvg);
+          if (response.ok) {
+            const svgText = await response.text();
+            setMapSvg(svgText);
+            const mapName = `campus-map-${campusId}`;
+            echarts.registerMap(mapName, { svg: svgText });
+            console.log('✅ Loaded fallback SVG from assets');
+            return;
+          }
+        } catch (e) {
+          console.warn('Failed to load fallback from assets, trying public folder:', e);
+        }
+        
+        try {
+          // Try public folder as second fallback
+          const publicResponse = await fetch('/maps/lg.svg');
+          if (publicResponse.ok) {
+            const svgText = await publicResponse.text();
+            setMapSvg(svgText);
+            const mapName = `campus-map-${campusId}`;
+            echarts.registerMap(mapName, { svg: svgText });
+            console.log('✅ Loaded fallback SVG from /maps/lg.svg');
+          } else {
+            console.error('❌ All fallback SVGs failed to load');
+            setMapSvg(null);
+          }
+        } catch (fallbackError) {
+          console.error('❌ Failed to load fallback SVG:', fallbackError);
+          setMapSvg(null);
+        }
       }
     };
 
