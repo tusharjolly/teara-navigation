@@ -168,12 +168,30 @@ async function apiGet<T>(path: string, timeout: number = 10000): Promise<T> {
 // Fetch raw (non-JSON) when needed
 async function apiGetText(path: string): Promise<string> {
   ensureConfigured();
-  const res = await fetch(`${API_BASE_URL}${path}`);
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`HTTP ${res.status}: ${text}`);
+  const fullUrl = `${API_BASE_URL}${path}`;
+  console.log('🌐 API GET Text Request:', fullUrl);
+  
+  try {
+    const res = await fetchWithTimeout(fullUrl, {
+      headers: {
+        Accept: "text/plain, text/html, application/xml, image/svg+xml, */*",
+      },
+    }, 15000); // 15 second timeout for SVG files
+    
+    console.log('📡 API Text Response status:', res.status, res.statusText);
+    
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status}: ${text}`);
+    }
+    return res.text();
+  } catch (error) {
+    console.error('❌ API GET Text Error:', error);
+    if (error instanceof Error && error.message === 'Request timeout') {
+      throw new Error('Request timed out. Please try again.');
+    }
+    throw error;
   }
-  return res.text();
 }
 
 async function apiPost<T, P = unknown>(path: string, payload: P): Promise<T> {

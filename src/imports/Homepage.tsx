@@ -542,10 +542,10 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
   // Call API when user searches - always calls backend API with timeout protection
   useEffect(() => {
     const keyword = searchQuery.trim();
-    console.log('🔎 Search useEffect triggered:', { keyword, hasOnSearch: !!onSearch });
+    // console.log('🔎 Search useEffect triggered:', { keyword, hasOnSearch: !!onSearch });
     
     if (!keyword || !onSearch) {
-      console.log('⚠️ Search skipped:', { keyword, hasOnSearch: !!onSearch });
+      // console.log('⚠️ Search skipped:', { keyword, hasOnSearch: !!onSearch });
       setSearchResults([]);
       setIsSearching(false);
       setSearchError(null);
