@@ -757,7 +757,7 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
       </button>
       
       {/* Search Input - Professional Google Maps style */}
-      <div className={`absolute bg-white dark:bg-gray-800 box-border content-stretch flex gap-[8px] items-center left-[16px] px-[12px] py-[10px] rounded-[100px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.1)] top-[48px] w-[361px] z-20 transition-all duration-200 ${
+      <div className={`absolute bg-white dark:bg-gray-800 box-border content-stretch flex gap-[8px] items-center left-[16px] px-[12px] py-[10px] rounded-[100px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.1)] top-[144px] w-[361px] z-20 transition-all duration-200 ${
         showRecentSearch ? 'shadow-[0px_8px_24px_0px_rgba(0,0,0,0.15)]' : ''
       }`}>
         <Search className={`size-5 text-[#2B2B2B] dark:text-gray-400 transition-colors ${isSearching ? 'text-blue-500' : ''}`} strokeWidth={2} />
@@ -765,17 +765,36 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
           type="text"
           value={searchQuery}
           onChange={(e) => {
-            setSearchQuery(e.target.value);
-            if (e.target.value.trim()) {
+            const value = e.target.value;
+            setSearchQuery(value);
+            // Always show search panel when typing
+            if (value.trim()) {
               setShowRecentSearch(true);
             }
           }}
-          onFocus={() => setShowRecentSearch(true)}
+          onFocus={() => {
+            setShowRecentSearch(true);
+          }}
           onBlur={(e) => {
             // Don't close if clicking on search results
             if (!e.relatedTarget || !e.relatedTarget.closest('[data-search-results]')) {
               // Delay closing to allow click events to fire
-              setTimeout(() => setShowRecentSearch(false), 200);
+              setTimeout(() => {
+                if (!document.activeElement?.closest('[data-search-results]')) {
+                  setShowRecentSearch(false);
+                }
+              }, 200);
+            }
+          }}
+          onKeyDown={(e) => {
+            // Allow Enter key to select first result
+            if (e.key === 'Enter' && searchResults.length > 0) {
+              const firstResult = searchResults[0];
+              setSearchQuery(firstResult.name);
+              setShowRecentSearch(false);
+              if (firstResult.type === 'building') {
+                onBuildingClick?.(firstResult.id);
+              }
             }
           }}
           placeholder="Search buildings, rooms, or locations..."
@@ -802,7 +821,7 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
       {showRecentSearch && (
         <div 
           data-search-results
-          className="absolute bg-white dark:bg-gray-800 box-border flex flex-col left-[16px] max-h-[450px] overflow-hidden rounded-[16px] shadow-[0px_8px_24px_0px_rgba(0,0,0,0.15)] top-[96px] w-[361px] z-30 animate-in fade-in slide-in-from-top-2 duration-200"
+          className="absolute bg-white dark:bg-gray-800 box-border flex flex-col left-[16px] max-h-[450px] overflow-hidden rounded-[16px] shadow-[0px_8px_24px_0px_rgba(0,0,0,0.15)] top-[192px] w-[361px] z-30 animate-in fade-in slide-in-from-top-2 duration-200"
           onMouseDown={(e) => e.preventDefault()} // Prevent blur when clicking results
         >
           {searchQuery.trim() ? (
