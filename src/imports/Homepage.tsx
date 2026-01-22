@@ -569,10 +569,18 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
   useEffect(() => {
     const keyword = searchQuery.trim();
     
-    if (!keyword || !onSearch) {
+    if (!keyword) {
       setSearchResults([]);
       setIsSearching(false);
       setSearchError(null);
+      return;
+    }
+
+    if (!onSearch) {
+      console.warn('⚠️ onSearch prop is not provided');
+      setSearchResults([]);
+      setIsSearching(false);
+      setSearchError('Search functionality not available');
       return;
     }
 
@@ -582,20 +590,24 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
     
     // Debounce API call - 300ms for smooth UX
     const debounceTimeout = setTimeout(() => {
+      console.log('🔍 Starting search for:', keyword);
+      
       // Add a timeout wrapper to prevent infinite loading
       const searchTimeout = setTimeout(() => {
         if (!cancelled) {
+          console.error('⏱️ Search timed out');
           setSearchResults([]);
           setIsSearching(false);
           setSearchError('Search timed out. Please try again.');
         }
-      }, 12000); // 12 second max timeout (10s API + 2s buffer)
+      }, 15000); // 15 second max timeout
       
       // Always call the API - no local fallback
       onSearch(keyword)
         .then((results) => {
           clearTimeout(searchTimeout);
           if (!cancelled) {
+            console.log('✅ Search results:', results);
             setSearchResults(results);
             setIsSearching(false);
             setSearchError(null);
@@ -604,6 +616,7 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
         .catch((error) => {
           clearTimeout(searchTimeout);
           if (!cancelled) {
+            console.error('❌ Search error:', error);
             setSearchResults([]);
             setIsSearching(false);
             setSearchError(error instanceof Error ? error.message : 'Search failed. Please try again.');
@@ -732,15 +745,27 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
       </button>
       
       {/* Search Input - Professional Google Maps style */}
-      <div className={`absolute bg-white dark:bg-gray-800 box-border content-stretch flex gap-[8px] items-center left-[16px] px-[12px] py-[10px] rounded-[100px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.1)] top-[144px] w-[361px] z-20 transition-all duration-200 ${
+      <div className={`absolute bg-white dark:bg-gray-800 box-border content-stretch flex gap-[8px] items-center left-[16px] px-[12px] py-[10px] rounded-[100px] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.1)] top-[48px] w-[361px] z-20 transition-all duration-200 ${
         showRecentSearch ? 'shadow-[0px_8px_24px_0px_rgba(0,0,0,0.15)]' : ''
       }`}>
         <Search className={`size-5 text-[#2B2B2B] dark:text-gray-400 transition-colors ${isSearching ? 'text-blue-500' : ''}`} strokeWidth={2} />
         <input
           type="text"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            if (e.target.value.trim()) {
+              setShowRecentSearch(true);
+            }
+          }}
           onFocus={() => setShowRecentSearch(true)}
+          onBlur={(e) => {
+            // Don't close if clicking on search results
+            if (!e.relatedTarget || !e.relatedTarget.closest('[data-search-results]')) {
+              // Delay closing to allow click events to fire
+              setTimeout(() => setShowRecentSearch(false), 200);
+            }
+          }}
           placeholder="Search buildings, rooms, or locations..."
           className="flex-1 outline-none bg-transparent font-['Inter:Regular',sans-serif] text-[15px] text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
         />
@@ -763,7 +788,11 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
       
       {/* Search Results Panel - Professional Google Maps style */}
       {showRecentSearch && (
-        <div className="absolute bg-white dark:bg-gray-800 box-border flex flex-col left-[16px] max-h-[450px] overflow-hidden rounded-[16px] shadow-[0px_8px_24px_0px_rgba(0,0,0,0.15)] top-[192px] w-[361px] z-30 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div 
+          data-search-results
+          className="absolute bg-white dark:bg-gray-800 box-border flex flex-col left-[16px] max-h-[450px] overflow-hidden rounded-[16px] shadow-[0px_8px_24px_0px_rgba(0,0,0,0.15)] top-[96px] w-[361px] z-30 animate-in fade-in slide-in-from-top-2 duration-200"
+          onMouseDown={(e) => e.preventDefault()} // Prevent blur when clicking results
+        >
           {searchQuery.trim() ? (
             <>
               {/* Search Results Header */}
@@ -806,14 +835,20 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
                   searchResults.map((item, index) => (
                     <button
                       key={item.id}
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         setSearchQuery(item.name);
                         setShowRecentSearch(false);
                         // Only call onBuildingClick for buildings, not nodes
                         if (item.type === 'building') {
                           onBuildingClick?.(item.id);
+                        } else {
+                          // For nodes, we could show them on the map or navigate to them
+                          console.log('Selected node:', item);
                         }
                       }}
+                      onMouseDown={(e) => e.preventDefault()} // Prevent input blur
                       className="flex items-center gap-3 px-[16px] py-[14px] hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-b-0 active:bg-gray-100 dark:active:bg-gray-700"
                     >
                       <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
