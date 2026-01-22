@@ -371,15 +371,14 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
         ];
       }
 
-      // Calculate initial zoom for aesthetic view - balanced zoom out
-      // For mobile screens, use a fixed aesthetic zoom that shows good context
-      // Calculate based on container to ensure it fits, but use a multiplier for better view
+      // Calculate initial zoom for aesthetic view - zoomed in for better detail
+      // Calculate based on container to ensure it fits properly
       const scaleX = containerWidth / svgWidth;
       const scaleY = containerHeight / svgHeight;
       const baseZoom = Math.min(scaleX, scaleY);
-      // Use 0.65x multiplier for a balanced, aesthetic zoomed-out view
-      // This shows good context without being too zoomed out or too zoomed in
-      const calculatedZoom = Math.max(0.4, Math.min(0.7, baseZoom * 0.65));
+      // Use 1.2x multiplier for a zoomed-in aesthetic view (shows more detail)
+      // This provides a nice zoomed-in view that's not too close
+      const calculatedZoom = Math.max(0.8, Math.min(1.3, baseZoom * 1.2));
 
       // Set ECharts option - Google Maps-like functionality
       const option: echarts.EChartsOption = {
@@ -452,11 +451,11 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
             ];
           }
           
-          // Recalculate zoom for new container size with 0.65x multiplier
+          // Recalculate zoom for new container size with 1.2x multiplier
           const newScaleX = newContainerWidth / svgWidth;
           const newScaleY = newContainerHeight / svgHeight;
           const newBaseZoom = Math.min(newScaleX, newScaleY);
-          const newCalculatedZoom = Math.max(0.4, Math.min(0.7, newBaseZoom * 0.65));
+          const newCalculatedZoom = Math.max(0.8, Math.min(1.3, newBaseZoom * 1.2));
           
           chartRef.current.setOption({
             geo: {
