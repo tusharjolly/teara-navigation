@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, ChevronDown, ChevronUp, ChevronRight, Search, MapPin, Moon, Globe, Check } from 'lucide-react';
-import { Language, Theme } from '../App';
+import { Language, Theme, Building } from '../App';
 import svgPaths from "../imports/svg-jr9ok6g6l3";
 import { imgGroup } from "../imports/svg-je40q";
 
@@ -11,6 +11,8 @@ interface MenuSidebarProps {
   onLanguageChange: () => void;
   onThemeChange: () => void;
   onBuildingSelect: (buildingId: string) => void;
+  buildings: Building[];
+  isLoadingBuildings?: boolean;
 }
 
 export default function MenuSidebar({
