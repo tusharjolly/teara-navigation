@@ -418,8 +418,8 @@ export default function App() {
 
   return (
     <div className={theme === 'dark' ? 'dark' : ''}>
-      <div className="relative w-full h-screen overflow-hidden bg-white dark:bg-gray-900 transition-colors">
-        <div className="relative w-full max-w-[393px] h-full max-h-[852px] mx-auto bg-white dark:bg-gray-900 transition-colors">
+      <div className="relative w-full h-screen overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-900 transition-colors">
+        <div className="relative w-full max-w-[393px] min-h-screen mx-auto bg-white dark:bg-gray-900 transition-colors">
           {(currentPage === 'home' || currentPage === 'routeSetting' || menuOpen) && (
             <>
               <Homepage 

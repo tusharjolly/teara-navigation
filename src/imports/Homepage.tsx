@@ -683,8 +683,8 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 relative size-full" data-name="Homepage">
-      <div className="absolute bg-white dark:bg-gray-900 h-[852px] left-0 top-0 w-[393px]" data-name="background" />
+    <div className="bg-white dark:bg-gray-900 relative w-full min-h-screen" data-name="Homepage">
+      <div className="absolute bg-white dark:bg-gray-900 min-h-screen left-0 top-0 w-[393px]" data-name="background" />
       
       {/* White background for Title and Search */}
       <div className="absolute bg-white dark:bg-gray-900 h-[96px] left-0 top-[48px] w-[390px]" />
@@ -788,11 +788,35 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
       
       {/* Search Results Panel - Professional Google Maps style */}
       {showRecentSearch && (
-        <div 
-          data-search-results
-          className="absolute bg-white dark:bg-gray-800 box-border flex flex-col left-[16px] max-h-[450px] overflow-hidden rounded-[16px] shadow-[0px_8px_24px_0px_rgba(0,0,0,0.15)] top-[192px] w-[361px] z-30 animate-in fade-in slide-in-from-top-2 duration-200"
-          onMouseDown={(e) => e.preventDefault()} // Prevent blur when clicking results
-        >
+        <>
+          {/* Custom scrollbar styles */}
+          <style>{`
+            .search-results-scroll::-webkit-scrollbar {
+              width: 8px;
+            }
+            .search-results-scroll::-webkit-scrollbar-track {
+              background: transparent;
+              border-radius: 4px;
+            }
+            .search-results-scroll::-webkit-scrollbar-thumb {
+              background: #cbd5e1;
+              border-radius: 4px;
+            }
+            .search-results-scroll::-webkit-scrollbar-thumb:hover {
+              background: #94a3b8;
+            }
+            .dark .search-results-scroll::-webkit-scrollbar-thumb {
+              background: #475569;
+            }
+            .dark .search-results-scroll::-webkit-scrollbar-thumb:hover {
+              background: #64748b;
+            }
+          `}</style>
+          <div 
+            data-search-results
+            className="absolute bg-white dark:bg-gray-800 box-border flex flex-col left-[16px] max-h-[450px] overflow-hidden rounded-[16px] shadow-[0px_8px_24px_0px_rgba(0,0,0,0.15)] top-[192px] w-[361px] z-30 animate-in fade-in slide-in-from-top-2 duration-200"
+            onMouseDown={(e) => e.preventDefault()} // Prevent blur when clicking results
+          >
           {searchQuery.trim() ? (
             <>
               {/* Search Results Header */}
@@ -822,8 +846,15 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
                 </button>
               </div>
               
-              {/* Search Results List */}
-              <div className="flex flex-col overflow-y-auto max-h-[380px]">
+              {/* Search Results List - Scrollable */}
+              <div 
+                className="flex flex-col overflow-y-auto max-h-[380px] overscroll-contain scroll-smooth search-results-scroll"
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#cbd5e1 transparent',
+                  WebkitOverflowScrolling: 'touch', // Smooth scrolling on iOS
+                }}
+              >
                 {isSearching ? (
                   <div className="px-[16px] py-[24px] text-center">
                     <Loader2 className="size-6 text-blue-500 animate-spin mx-auto mb-2" strokeWidth={2} />
