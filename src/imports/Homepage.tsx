@@ -420,15 +420,15 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
         geo: {
           map: mapName,
           roam: true, // Enable both pan and zoom gestures (like Google Maps)
-          zoom: calculatedZoom, // Initial zoom level - zoomed in for detail
-          center: [svgWidth / 2, svgHeight / 2], // Center the map on the SVG center point
+          zoom: calculatedZoom, // Initial zoom level - natural fit
+          // Don't set center when using boundingCoords - let ECharts calculate it
           left: 0,
           top: 0,
           right: 0,
           bottom: 0,
           layoutSize: '100%', // Fill entire container
           layoutCenter: ['50%', '50%'], // Center the map in container
-          boundingCoords: boundingCoords, // Fit map to screen
+          boundingCoords: boundingCoords, // Fit map to screen - this handles centering
           itemStyle: {
             areaColor: 'transparent',
             borderColor: 'transparent',
@@ -493,7 +493,7 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
             geo: {
               boundingCoords: newBoundingCoords,
               zoom: newCalculatedZoom,
-              center: [svgWidth / 2, svgHeight / 2], // Keep map centered
+              // Don't set center - boundingCoords handles it
             },
           }, false);
           
@@ -573,7 +573,7 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
         chartRef.current.setOption({
           geo: {
             boundingCoords: newBoundingCoords,
-            center: [svgWidth / 2, svgHeight / 2], // Keep map centered on resize
+            // Don't set center - boundingCoords handles centering
           },
         }, false);
       }
