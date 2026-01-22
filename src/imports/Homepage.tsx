@@ -22,62 +22,6 @@ interface HomepageProps {
   campusId?: string;
 }
 
-function Notch() {
-  return (
-    <div className="absolute h-[31px] left-[calc(50%+0.5px)] top-[-2px] translate-x-[-50%] w-[164px]" data-name="Notch">
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 164 31">
-        <g id="Notch">
-          <g id="Notch_2"></g>
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-function RightSide() {
-  return (
-    <div className="absolute h-[11.336px] right-[27.34px] top-[17.33px] w-[66.661px]" data-name="Right Side">
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 67 12">
-        <g id="Right Side">
-          <g id="Battery">
-            <path d={svgPaths.p18c81cf0} id="Rectangle" opacity="0.35" stroke="var(--stroke-0, white)" />
-            <path d={svgPaths.p3d3cbf00} fill="var(--fill-0, white)" id="Combined Shape" opacity="0.4" />
-            <path d={svgPaths.p3cceaf80} fill="var(--fill-0, white)" id="Rectangle_2" />
-          </g>
-          <path clipRule="evenodd" d={svgPaths.p1d7c8600} fill="var(--fill-0, white)" fillRule="evenodd" id="Wifi" />
-          <path clipRule="evenodd" d={svgPaths.p3e2de00} fill="var(--fill-0, white)" fillRule="evenodd" id="Mobile Signal" />
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-function Time() {
-  return (
-    <div className="absolute h-[21px] left-[24px] rounded-[24px] top-[12px] w-[54px]" data-name="_Time">
-      <p className="absolute font-['SF_Pro_Text:Semibold',sans-serif] h-[20px] leading-[20px] left-[27px] not-italic text-[15px] text-center text-white top-px tracking-[-0.5px] translate-x-[-50%] w-[54px]">9:41</p>
-    </div>
-  );
-}
-
-function LeftSide() {
-  return (
-    <div className="absolute contents left-[24px] top-[12px]" data-name="Left Side">
-      <Time />
-    </div>
-  );
-}
-
-function StatusBarIPhone1313Pro() {
-  return (
-    <div className="bg-[#353535] h-[44px] overflow-clip pointer-events-auto sticky top-0 w-[393px]" data-name="Status Bar / iPhone 13 & 13 Pro">
-      <Notch />
-      <RightSide />
-      <LeftSide />
-    </div>
-  );
-}
-
 function Group() {
   return (
     <div className="absolute inset-0 mask-alpha mask-intersect mask-no-clip mask-no-repeat mask-position-[-0.001px_0px] mask-size-[97.38px_29.33px]" data-name="Group" style={{ maskImage: `url('${imgGroup}')` }}>
@@ -728,11 +672,6 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
   return (
     <div className="bg-white dark:bg-gray-900 relative size-full" data-name="Homepage">
       <div className="absolute bg-white dark:bg-gray-900 h-[852px] left-0 top-0 w-[393px]" data-name="background" />
-      
-      {/* Status Bar */}
-      <div className="absolute bottom-0 h-[852px] left-0 pointer-events-none top-0">
-        <StatusBarIPhone1313Pro />
-      </div>
       
       {/* White background for Title and Search */}
       <div className="absolute bg-white dark:bg-gray-900 h-[96px] left-0 top-[48px] w-[390px]" />
