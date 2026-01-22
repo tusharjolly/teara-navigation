@@ -142,7 +142,7 @@ function fetchWithTimeout(url: string, options: RequestInit = {}, timeout = 6000
     });
 }
 
-async function apiGet<T>(path: string, timeout: number = 6000): Promise<T> {
+async function apiGet<T>(path: string, timeout: number = 10000): Promise<T> {
   ensureConfigured();
   const fullUrl = `${API_BASE_URL}${path}`;
   console.log('🌐 API GET Request:', fullUrl);
@@ -243,8 +243,8 @@ export async function searchBuildingsAndNodes(campusId: string, keyword: string)
   
   try {
     console.log('⏳ Calling apiGet with URL:', url);
-    // Use shorter timeout for search (5 seconds)
-    const result = await apiGet<{ results: ApiSearchResult[]; next_page_token?: string; total_count?: number }>(url, 5000);
+    // Use longer timeout for search (15 seconds) to account for Cloudflare Worker proxy latency
+    const result = await apiGet<{ results: ApiSearchResult[]; next_page_token?: string; total_count?: number }>(url, 15000);
     console.log('✅ Search API success:', result);
     return result;
   } catch (error) {
