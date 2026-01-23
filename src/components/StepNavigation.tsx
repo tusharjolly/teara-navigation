@@ -86,6 +86,50 @@ export default function StepNavigation({
     return 'south';
   };
 
+  // Helper function to get display name for a node
+  const getNodeDisplayName = (node: PathfindingNode): string => {
+    // If node has a name, use it
+    if (node.name) {
+      return node.name;
+    }
+    
+    // If node has building and floor info, format as "L.G Floor"
+    if (node.building_name && node.floor_name) {
+      // Extract building letter (e.g., "L" from "L Building" or just "L")
+      const buildingLetter = node.building_name.split(' ')[0].replace('Building', '').trim();
+      
+      // Format floor name - extract abbreviation
+      let floorAbbr = 'G'; // Default to G for Ground
+      const floorLower = node.floor_name.toLowerCase().trim();
+      if (floorLower.includes('ground')) {
+        floorAbbr = 'G';
+      } else if (floorLower.match(/^g[^a-z]*$/i)) {
+        // Starts with G followed by non-letters (like "G", "G1", "G-1")
+        floorAbbr = 'G';
+      } else if (floorLower.match(/^[a-z0-9]$/i)) {
+        // Single letter or number like "g", "1", "2"
+        floorAbbr = floorLower.toUpperCase();
+      } else {
+        // Try to extract first letter or number
+        const match = floorLower.match(/^([a-z0-9])/);
+        if (match) {
+          floorAbbr = match[1].toUpperCase();
+        }
+      }
+      
+      return `${buildingLetter}.${floorAbbr} Floor`;
+    }
+    
+    // If only building name is available
+    if (node.building_name) {
+      const buildingLetter = node.building_name.split(' ')[0].replace('Building', '').trim();
+      return `${buildingLetter} Building`;
+    }
+    
+    // Fallback to node ID
+    return node.id;
+  };
+
   // Generate simple step-by-step instructions
   const steps: Step[] = useMemo(() => {
     try {
@@ -96,11 +140,12 @@ export default function StepNavigation({
 
     // First step - Start
     const firstNode = path.nodes[0];
+    const firstNodeName = getNodeDisplayName(firstNode);
     stepList.push({
       id: 1,
-      instruction: `Start at ${firstNode.name || firstNode.id}`,
-      instructionCN: `从 ${firstNode.name || firstNode.id} 出发`,
-      instructionMI: `Tīmata i ${firstNode.name || firstNode.id}`,
+      instruction: `Start at ${firstNodeName}`,
+      instructionCN: `从 ${firstNodeName} 出发`,
+      instructionMI: `Tīmata i ${firstNodeName}`,
       distance: '0 m',
         direction: 'straight',
       nodeIndex: 0,
@@ -149,26 +194,27 @@ export default function StepNavigation({
         ? `${(totalDistance / 1000).toFixed(1)} km`
         : `${Math.round(totalDistance)} m`;
 
+      const currentNodeName = getNodeDisplayName(currentNode);
       let instruction = '';
       let instructionCN = '';
       let instructionMI = '';
 
       if (isLast) {
-        instruction = `Arrive at ${currentNode.name || currentNode.id}`;
-        instructionCN = `到达 ${currentNode.name || currentNode.id}`;
-        instructionMI = `Tae ki ${currentNode.name || currentNode.id}`;
+        instruction = `Arrive at ${currentNodeName}`;
+        instructionCN = `到达 ${currentNodeName}`;
+        instructionMI = `Tae ki ${currentNodeName}`;
       } else if (direction === 'left') {
-        instruction = `Turn left toward ${currentNode.name || currentNode.id}`;
-        instructionCN = `左转前往 ${currentNode.name || currentNode.id}`;
-        instructionMI = `Huri mauī ki ${currentNode.name || currentNode.id}`;
+        instruction = `Turn left toward ${currentNodeName}`;
+        instructionCN = `左转前往 ${currentNodeName}`;
+        instructionMI = `Huri mauī ki ${currentNodeName}`;
       } else if (direction === 'right') {
-        instruction = `Turn right toward ${currentNode.name || currentNode.id}`;
-        instructionCN = `右转前往 ${currentNode.name || currentNode.id}`;
-        instructionMI = `Huri matau ki ${currentNode.name || currentNode.id}`;
+        instruction = `Turn right toward ${currentNodeName}`;
+        instructionCN = `右转前往 ${currentNodeName}`;
+        instructionMI = `Huri matau ki ${currentNodeName}`;
       } else {
-        instruction = `Continue straight to ${currentNode.name || currentNode.id}`;
-        instructionCN = `直行前往 ${currentNode.name || currentNode.id}`;
-        instructionMI = `Haere tonu ki ${currentNode.name || currentNode.id}`;
+        instruction = `Continue straight to ${currentNodeName}`;
+        instructionCN = `直行前往 ${currentNodeName}`;
+        instructionMI = `Haere tonu ki ${currentNodeName}`;
       }
 
       stepList.push({

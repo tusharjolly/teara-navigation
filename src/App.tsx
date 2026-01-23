@@ -356,7 +356,12 @@ export default function App() {
       const cached = searchCache.current.get(cacheKey);
       const cacheTime = cacheTimestamps.current.get(cacheKey);
       if (cached && cacheTime && Date.now() - cacheTime < CACHE_TTL) {
-        console.log('✅ Using cached results for:', cacheKey);
+        console.log('✅ Using cached results for:', cacheKey, { 
+          cachedCount: cached.length, 
+          cachedItems: cached,
+          firstCached: cached[0],
+          cacheAge: Date.now() - cacheTime
+        });
         return cached;
       }
       
@@ -388,26 +393,40 @@ export default function App() {
         console.log('🌐 Calling searchBuildingsAndNodes with:', { campusId, searchTerm });
         // Try the normalized term first
         let res = await searchBuildingsAndNodes(campusId, searchTerm);
-        console.log('📥 searchBuildingsAndNodes response:', { resultCount: res.results?.length || 0 });
+        console.log('📥 searchBuildingsAndNodes response:', { 
+          resultCount: res.results?.length || 0,
+          rawResults: res.results,
+          firstResult: res.results?.[0],
+          allKeys: res.results?.[0] ? Object.keys(res.results[0]) : []
+        });
         
         // If no results, try original term
         if (res.results.length === 0 && searchTerm !== trimmed) {
           console.log('🔄 No results with normalized term, trying original:', trimmed);
           res = await searchBuildingsAndNodes(campusId, trimmed);
-          console.log('📥 Second searchBuildingsAndNodes response:', { resultCount: res.results?.length || 0 });
+          console.log('📥 Second searchBuildingsAndNodes response:', { 
+            resultCount: res.results?.length || 0,
+            rawResults: res.results,
+            firstResult: res.results?.[0]
+          });
         }
         
-        // Map results
-        const results = res.results.map((item) => ({
-          id: item.id,
-          name: item.name,
-          building_id: item.building_id,
-          floor_id: item.floor_id,
-          func_type: item.func_type,
-          type: item.type,
-        }));
+        // Map results with detailed logging
+        console.log('🔄 Mapping results, raw items:', res.results);
+        const results = res.results.map((item, index) => {
+          const mapped = {
+            id: item.id,
+            name: item.name,
+            building_id: item.building_id,
+            floor_id: item.floor_id,
+            func_type: item.func_type,
+            type: item.type,
+          };
+          console.log(`🔄 Mapped item ${index}:`, { original: item, mapped });
+          return mapped;
+        });
         
-        console.log('✅ Mapped results:', { count: results.length });
+        console.log('✅ Mapped results:', { count: results.length, results, firstResult: results[0] });
         
         // Cache the results
         if (results.length > 0) {
@@ -415,6 +434,7 @@ export default function App() {
           cacheTimestamps.current.set(cacheKey, Date.now());
         }
         
+        console.log('✅ Returning results from searchNodesForCampus:', { count: results.length, results });
         return results;
       } catch (error) {
         console.error('❌ Search API error:', error);
@@ -434,6 +454,65 @@ export default function App() {
     [campusId, poiIndex]
   );
 
+  // Handler for when a node is clicked from search results
+  const handleNodeClick = useCallback(async (nodeId: string, nodeName: string, buildingId?: string, floorId?: string) => {
+    console.log('🔍 Node clicked:', { nodeId, nodeName, buildingId, floorId });
+    
+    if (!campusId) {
+      setPathError('Set VITE_DEFAULT_CAMPUS_ID to enable routing.');
+      setCurrentPage('routeSetting');
+      return;
+    }
+
+    try {
+      // Create a node object from the search result
+      // The node coordinates will be fetched when the route is calculated
+      const node: MapNode = {
+        id: nodeId,
+        name: nodeName,
+        building_id: buildingId,
+        floor_id: floorId,
+      };
+      
+      updateDestination(node);
+      setCurrentPage('routeSetting');
+      console.log('✅ Destination set and navigated to route setting:', node);
+    } catch (error) {
+      console.error('❌ Error handling node click:', error);
+      setPathError(
+        error instanceof Error
+          ? error.message
+          : 'Could not set destination node.'
+      );
+      setCurrentPage('routeSetting');
+    }
+  }, [campusId]);
+
+  // Memoized search handler to prevent infinite loops in Homepage useEffect
+  const handleSearch = useCallback(async (keyword: string) => {
+    console.log('🔍 handleSearch called with keyword:', keyword);
+    const results = await searchNodesForCampus(keyword);
+    console.log('🔍 handleSearch received results from searchNodesForCampus:', { 
+      count: results.length, 
+      results,
+      firstResult: results[0],
+      firstResultKeys: results[0] ? Object.keys(results[0]) : []
+    });
+    const mapped = results.map((item) => {
+      const mappedItem = {
+        id: item.id,
+        name: item.name || '',
+        type: (item.type === 'building' ? 'building' : 'node') as 'building' | 'node',
+        building_id: item.building_id,
+        floor_id: item.floor_id,
+      };
+      console.log('🔍 Mapping item:', { original: item, mapped: mappedItem });
+      return mappedItem;
+    });
+    console.log('🔍 handleSearch returning mapped results:', { count: mapped.length, mapped, firstMapped: mapped[0] });
+    return mapped;
+  }, [searchNodesForCampus]);
+
   return (
     <div className={theme === 'dark' ? 'dark' : ''}>
       <div className="relative w-full h-screen overflow-hidden bg-white dark:bg-gray-900 transition-colors">
@@ -443,17 +522,11 @@ export default function App() {
               <Homepage 
                 onMenuClick={() => setMenuOpen(true)}
                 onBuildingClick={handleBuildingClick}
+                onNodeClick={handleNodeClick}
                 onFloatingButtonClick={handleStartRoute}
                 userLocation={userSvg}
                 campusId={campusId}
-                onSearch={async (keyword: string) => {
-                  const results = await searchNodesForCampus(keyword);
-                  return results.map((item) => ({
-                    id: item.id,
-                    name: item.name || '',
-                    type: (item.type === 'building' ? 'building' : 'node') as 'building' | 'node',
-                  }));
-                }}
+                onSearch={handleSearch}
               />
               {selectedBuilding && currentPage === 'home' && !menuOpen && (
                 <BuildingInfoPanel

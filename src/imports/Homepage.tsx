@@ -11,11 +11,14 @@ interface SearchResult {
   id: string;
   name: string;
   type: 'building' | 'node';
+  building_id?: string;
+  floor_id?: string;
 }
 
 interface HomepageProps {
   onMenuClick?: () => void;
   onBuildingClick?: (buildingId: string) => void;
+  onNodeClick?: (nodeId: string, nodeName: string, buildingId?: string, floorId?: string) => void;
   onFloatingButtonClick?: () => void;
   onSearch?: (keyword: string) => Promise<SearchResult[]>;
   userLocation?: { x: number; y: number; accuracy?: number } | null;
@@ -152,7 +155,7 @@ function HomeIndicatorLight() {
   );
 }
 
-export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButtonClick, onSearch, userLocation, campusId }: HomepageProps) {
+export default function Homepage({ onMenuClick, onBuildingClick, onNodeClick, onFloatingButtonClick, onSearch, userLocation, campusId }: HomepageProps) {
   const [zoomLevel, setZoomLevel] = useState(1); // Keep for fallback image zoom
   const [searchQuery, setSearchQuery] = useState('');
   const [showCampusPanel, setShowCampusPanel] = useState(false);
@@ -569,7 +572,15 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
   useEffect(() => {
     const keyword = searchQuery.trim();
     
+    console.log('🔍 Search useEffect triggered:', { 
+      searchQuery, 
+      keyword, 
+      keywordLength: keyword.length,
+      hasOnSearch: !!onSearch 
+    });
+    
     if (!keyword) {
+      console.log('⚠️ Empty keyword, clearing search');
       setSearchResults([]);
       setIsSearching(false);
       setSearchError(null);
@@ -588,7 +599,7 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
     setIsSearching(true);
     setSearchError(null);
     
-    // Debounce API call - 300ms for smooth UX
+    // Debounce API call - 150ms for faster response
     const debounceTimeout = setTimeout(() => {
       console.log('🔍 Starting search for:', keyword);
       console.log('🔍 onSearch function available:', typeof onSearch === 'function');
@@ -613,9 +624,27 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
             clearTimeout(searchTimeout);
             if (!cancelled) {
               console.log('✅ Search results received:', results);
-              setSearchResults(results || []);
+              const finalResults = Array.isArray(results) ? results : [];
+              console.log('✅ Final results to display:', { 
+                count: finalResults.length, 
+                results: finalResults,
+                firstResult: finalResults[0],
+                firstResultName: finalResults[0]?.name,
+                firstResultId: finalResults[0]?.id,
+                firstResultType: finalResults[0]?.type
+              });
+              setSearchResults(finalResults);
               setIsSearching(false);
               setSearchError(null);
+              // Keep the panel open when we have results
+              if (finalResults.length > 0) {
+                setShowRecentSearch(true);
+              }
+              console.log('✅ Search state updated:', { 
+                resultsCount: finalResults.length, 
+                isSearching: false,
+                showRecentSearch: true
+              });
             }
           })
           .catch((error) => {
@@ -630,6 +659,14 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
               setSearchResults([]);
               setIsSearching(false);
               setSearchError(error instanceof Error ? error.message : 'Search failed. Please try again.');
+              console.log('✅ Error state updated:', { isSearching: false });
+            }
+          })
+          .finally(() => {
+            // Ensure loading state is always cleared, even if promise doesn't resolve/reject
+            if (!cancelled) {
+              clearTimeout(searchTimeout);
+              setIsSearching(false);
             }
           });
       } catch (error) {
@@ -641,7 +678,7 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
           setSearchError('Failed to execute search. Please try again.');
         }
       }
-    }, 300); // 300ms debounce for smooth typing experience
+    }, 150); // 150ms debounce for faster response
 
     return () => {
       cancelled = true;
@@ -890,12 +927,13 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
                         e.stopPropagation();
                         setSearchQuery(item.name);
                         setShowRecentSearch(false);
-                        // Only call onBuildingClick for buildings, not nodes
+                        // Handle building clicks
                         if (item.type === 'building') {
                           onBuildingClick?.(item.id);
                         } else {
-                          // For nodes, we could show them on the map or navigate to them
-                          console.log('Selected node:', item);
+                          // Handle node clicks - trigger navigation
+                          console.log('🔍 Node selected from search:', item);
+                          onNodeClick?.(item.id, item.name, item.building_id, item.floor_id);
                         }
                       }}
                       onMouseDown={(e) => e.preventDefault()} // Prevent input blur
