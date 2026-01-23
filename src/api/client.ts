@@ -93,10 +93,21 @@ export interface MapSvgResponse {
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ?? "";
 const DEFAULT_CAMPUS_ID = (import.meta.env.VITE_DEFAULT_CAMPUS_ID as string | undefined) ?? "";
 
+// Log configuration on module load
+console.log('🔧 API Configuration:', {
+  VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'NOT SET',
+  API_BASE_URL: API_BASE_URL || 'EMPTY (will use relative URLs)',
+  VITE_DEFAULT_CAMPUS_ID: import.meta.env.VITE_DEFAULT_CAMPUS_ID || 'NOT SET',
+  DEFAULT_CAMPUS_ID: DEFAULT_CAMPUS_ID || 'EMPTY',
+  NODE_ENV: import.meta.env.MODE,
+});
+
 function ensureConfigured() {
   if (!API_BASE_URL) {
-    const error = new Error("Missing VITE_API_BASE_URL. Add it to your .env.");
+    const error = new Error("Missing VITE_API_BASE_URL. Add it to your .env file or Cloudflare Pages environment variables.");
     console.error('❌ Configuration error:', error);
+    console.error('❌ Current API_BASE_URL:', API_BASE_URL);
+    console.error('❌ VITE_API_BASE_URL from env:', import.meta.env.VITE_API_BASE_URL);
     throw error;
   }
 }
@@ -118,17 +129,36 @@ async function handleResponse<T>(res: Response): Promise<T> {
 
 // Helper function to add timeout to fetch requests
 function fetchWithTimeout(url: string, options: RequestInit = {}, timeout = 6000): Promise<Response> {
+  console.log('🌐 fetchWithTimeout called:', { url, timeout, method: options.method || 'GET' });
+  
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  const timeoutId = setTimeout(() => {
+    console.error('⏱️ Request timeout after', timeout, 'ms for:', url);
+    controller.abort();
+  }, timeout);
   
   return fetch(url, {
     ...options,
     signal: controller.signal,
   })
-    .finally(() => {
+    .then((response) => {
       clearTimeout(timeoutId);
+      console.log('📡 Fetch response received:', { 
+        url, 
+        status: response.status, 
+        statusText: response.statusText,
+        ok: response.ok 
+      });
+      return response;
     })
     .catch((error) => {
+      clearTimeout(timeoutId);
+      console.error('❌ Fetch error:', { 
+        url, 
+        error: error.message || error, 
+        name: error.name,
+        type: error.constructor.name
+      });
       if (error.name === 'AbortError') {
         throw new Error('Request timeout');
       }
@@ -137,18 +167,58 @@ function fetchWithTimeout(url: string, options: RequestInit = {}, timeout = 6000
 }
 
 async function apiGet<T>(path: string, timeout: number = 10000): Promise<T> {
+  // Check configuration BEFORE ensureConfigured to provide better error message
+  if (!API_BASE_URL) {
+    const errorMsg = `API_BASE_URL is not configured. Current value: "${API_BASE_URL}". VITE_API_BASE_URL from env: "${import.meta.env.VITE_API_BASE_URL || 'NOT SET'}". Please restart your dev server after creating/updating .env file.`;
+    console.error('❌ Configuration Error:', errorMsg);
+    throw new Error(errorMsg);
+  }
+  
   ensureConfigured();
-  const fullUrl = `${API_BASE_URL}${path}`;
+  
+  // Ensure path starts with / if it doesn't already
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const fullUrl = `${API_BASE_URL}${normalizedPath}`;
+  
+  console.log('🌐 API GET Request:', { 
+    path: normalizedPath, 
+    fullUrl, 
+    timeout,
+    API_BASE_URL 
+  });
+  console.log('🌐 Making fetch request to:', fullUrl);
   
   try {
+    const startTime = Date.now();
     const res = await fetchWithTimeout(fullUrl, {
+      method: 'GET',
       headers: {
         Accept: "application/json",
+        "Content-Type": "application/json",
       },
     }, timeout);
+    const duration = Date.now() - startTime;
     
-    return handleResponse<T>(res);
+    console.log('📥 API GET Response:', { 
+      status: res.status, 
+      statusText: res.statusText, 
+      url: fullUrl,
+      duration: `${duration}ms`,
+      ok: res.ok
+    });
+    
+    const data = await handleResponse<T>(res);
+    console.log('✅ API GET Success:', { path: normalizedPath, hasData: !!data, duration: `${duration}ms` });
+    return data;
   } catch (error) {
+    console.error('❌ API GET Error:', { 
+      error, 
+      path: normalizedPath, 
+      fullUrl,
+      API_BASE_URL,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorName: error instanceof Error ? error.name : typeof error
+    });
     if (error instanceof Error && error.message === 'Request timeout') {
       throw new Error('Request timed out. Please try again.');
     }
@@ -222,11 +292,23 @@ export async function searchNodes(campusId: string, keyword: string) {
 }
 
 export async function searchBuildingsAndNodes(campusId: string, keyword: string) {
+  console.log('🔍 searchBuildingsAndNodes called:', { campusId, keyword, API_BASE_URL: API_BASE_URL || 'NOT SET' });
+  
+  if (!campusId) {
+    console.warn('⚠️ No campusId provided to searchBuildingsAndNodes');
+    return { results: [], next_page_token: undefined, total_count: 0 };
+  }
+  
+  if (!keyword || !keyword.trim()) {
+    console.warn('⚠️ No keyword provided to searchBuildingsAndNodes');
+    return { results: [], next_page_token: undefined, total_count: 0 };
+  }
+  
   // Search for both buildings and nodes - omit types parameter to search all types
   // or explicitly pass both: types=building&types=node
   const params = new URLSearchParams({
     campus_id: campusId,
-    keyword: keyword,
+    keyword: keyword.trim(),
     page_size: '20',
   });
   // Add types as repeated parameters (Go-Zero expects this format for arrays)
@@ -234,18 +316,29 @@ export async function searchBuildingsAndNodes(campusId: string, keyword: string)
   params.append('types', 'node');
   
   const url = `/query/search?${params.toString()}`;
+  const fullUrl = `${API_BASE_URL}${url}`;
+  console.log('🔍 Search API URL:', url);
+  console.log('🔍 Full API URL:', fullUrl);
   
   // Verify API_BASE_URL is set
   if (!API_BASE_URL) {
-    const error = new Error('API_BASE_URL is not configured. Check your .env file.');
+    const error = new Error('API_BASE_URL is not configured. Check your .env file or Cloudflare Pages environment variables.');
+    console.error('❌ API_BASE_URL not configured');
     throw error;
   }
   
   try {
+    console.log('🌐 Making API request now...');
     // Use longer timeout for search (15 seconds) to account for Cloudflare Worker proxy latency
     const result = await apiGet<{ results: ApiSearchResult[]; next_page_token?: string; total_count?: number }>(url, 15000);
+    console.log('✅ Search API success:', { count: result.results?.length || 0 });
     return result;
   } catch (error) {
+    console.error('❌ Search API error:', error);
+    console.error('❌ Error details:', {
+      message: error instanceof Error ? error.message : String(error),
+      name: error instanceof Error ? error.name : typeof error
+    });
     throw error;
   }
 }

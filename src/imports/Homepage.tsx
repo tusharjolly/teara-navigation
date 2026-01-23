@@ -533,7 +533,7 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
     };
   }, [mapSvg, mapLoading, campusId]);
 
-  // Update markers when user location changes (without re-initializing)
+  // Update markers when user location changes
   useEffect(() => {
     if (!chartRef.current || !mapSvg) return;
 
@@ -591,6 +591,7 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
     // Debounce API call - 300ms for smooth UX
     const debounceTimeout = setTimeout(() => {
       console.log('🔍 Starting search for:', keyword);
+      console.log('🔍 onSearch function available:', typeof onSearch === 'function');
       
       // Add a timeout wrapper to prevent infinite loading
       const searchTimeout = setTimeout(() => {
@@ -603,25 +604,43 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
       }, 15000); // 15 second max timeout
       
       // Always call the API - no local fallback
-      onSearch(keyword)
-        .then((results) => {
-          clearTimeout(searchTimeout);
-          if (!cancelled) {
-            console.log('✅ Search results:', results);
-            setSearchResults(results);
-            setIsSearching(false);
-            setSearchError(null);
-          }
-        })
-        .catch((error) => {
-          clearTimeout(searchTimeout);
-          if (!cancelled) {
-            console.error('❌ Search error:', error);
-            setSearchResults([]);
-            setIsSearching(false);
-            setSearchError(error instanceof Error ? error.message : 'Search failed. Please try again.');
-          }
-        });
+      try {
+        const searchPromise = onSearch(keyword);
+        console.log('🔍 Search promise created:', searchPromise);
+        
+        searchPromise
+          .then((results) => {
+            clearTimeout(searchTimeout);
+            if (!cancelled) {
+              console.log('✅ Search results received:', results);
+              setSearchResults(results || []);
+              setIsSearching(false);
+              setSearchError(null);
+            }
+          })
+          .catch((error) => {
+            clearTimeout(searchTimeout);
+            if (!cancelled) {
+              console.error('❌ Search error:', error);
+              console.error('❌ Error details:', {
+                message: error?.message,
+                stack: error?.stack,
+                name: error?.name
+              });
+              setSearchResults([]);
+              setIsSearching(false);
+              setSearchError(error instanceof Error ? error.message : 'Search failed. Please try again.');
+            }
+          });
+      } catch (error) {
+        clearTimeout(searchTimeout);
+        if (!cancelled) {
+          console.error('❌ Search function error:', error);
+          setSearchResults([]);
+          setIsSearching(false);
+          setSearchError('Failed to execute search. Please try again.');
+        }
+      }
     }, 300); // 300ms debounce for smooth typing experience
 
     return () => {
@@ -683,8 +702,8 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 relative w-full min-h-screen" data-name="Homepage">
-      <div className="absolute bg-white dark:bg-gray-900 min-h-screen left-0 top-0 w-[393px]" data-name="background" />
+    <div className="bg-white dark:bg-gray-900 relative w-full" data-name="Homepage">
+      <div className="absolute bg-white dark:bg-gray-900 h-[852px] left-0 top-0 w-[393px]" data-name="background" />
       
       {/* White background for Title and Search */}
       <div className="absolute bg-white dark:bg-gray-900 h-[96px] left-0 top-[48px] w-[390px]" />
@@ -975,7 +994,8 @@ export default function Homepage({ onMenuClick, onBuildingClick, onFloatingButto
           </div>
             </>
           )}
-        </div>
+          </div>
+        </>
       )}
       
       {/* Overlay to close recent search */}

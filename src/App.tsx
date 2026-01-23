@@ -338,12 +338,16 @@ export default function App() {
 
   const searchNodesForCampus = useCallback(
     async (keyword: string) => {
+      console.log('🔍 searchNodesForCampus called:', { keyword, campusId: campusId || 'NOT SET' });
+      
       if (!campusId) {
+        console.warn('⚠️ No campusId, returning empty results');
         return [];
       }
       
       const trimmed = keyword.trim().toLowerCase();
       if (!trimmed) {
+        console.warn('⚠️ Empty keyword after trim, returning empty results');
         return [];
       }
       
@@ -352,8 +356,11 @@ export default function App() {
       const cached = searchCache.current.get(cacheKey);
       const cacheTime = cacheTimestamps.current.get(cacheKey);
       if (cached && cacheTime && Date.now() - cacheTime < CACHE_TTL) {
+        console.log('✅ Using cached results for:', cacheKey);
         return cached;
       }
+      
+      console.log('🔍 Cache miss, calling API for:', trimmed);
       
       // Improved search term normalization for queries like "L building gate no 2"
       let searchTerm = trimmed;
@@ -378,12 +385,16 @@ export default function App() {
       }
       
       try {
+        console.log('🌐 Calling searchBuildingsAndNodes with:', { campusId, searchTerm });
         // Try the normalized term first
         let res = await searchBuildingsAndNodes(campusId, searchTerm);
+        console.log('📥 searchBuildingsAndNodes response:', { resultCount: res.results?.length || 0 });
         
         // If no results, try original term
         if (res.results.length === 0 && searchTerm !== trimmed) {
+          console.log('🔄 No results with normalized term, trying original:', trimmed);
           res = await searchBuildingsAndNodes(campusId, trimmed);
+          console.log('📥 Second searchBuildingsAndNodes response:', { resultCount: res.results?.length || 0 });
         }
         
         // Map results
@@ -396,6 +407,8 @@ export default function App() {
           type: item.type,
         }));
         
+        console.log('✅ Mapped results:', { count: results.length });
+        
         // Cache the results
         if (results.length > 0) {
           searchCache.current.set(cacheKey, results);
@@ -404,9 +417,14 @@ export default function App() {
         
         return results;
       } catch (error) {
-        console.error('Search API error:', error);
+        console.error('❌ Search API error:', error);
+        console.error('❌ Error details:', {
+          message: error instanceof Error ? error.message : String(error),
+          name: error instanceof Error ? error.name : typeof error
+        });
         // If API fails and we have local POI index, use it as fallback
         if (poiIndex) {
+          console.log('🔄 Using local POI fallback');
           const local = searchPois(poiIndex, keyword);
           return local;
         }
@@ -418,8 +436,8 @@ export default function App() {
 
   return (
     <div className={theme === 'dark' ? 'dark' : ''}>
-      <div className="relative w-full h-screen overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-900 transition-colors">
-        <div className="relative w-full max-w-[393px] min-h-screen mx-auto bg-white dark:bg-gray-900 transition-colors">
+      <div className="relative w-full h-screen overflow-hidden bg-white dark:bg-gray-900 transition-colors">
+        <div className="relative w-full max-w-[393px] h-full max-h-[852px] mx-auto bg-white dark:bg-gray-900 transition-colors">
           {(currentPage === 'home' || currentPage === 'routeSetting' || menuOpen) && (
             <>
               <Homepage 
